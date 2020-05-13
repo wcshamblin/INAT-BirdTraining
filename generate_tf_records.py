@@ -1,10 +1,22 @@
 #!/usr/bin/python3
-
-
+import argparse
 import sys
+
+ps = argparse.ArgumentParser(description='')
+ps.add_argument("opath", type=str, help='Output path for models')
+ps.add_argument("lpath", type=str, help='Labels path (.pbtxt)')
+ps.add_argument("tjson", type=str, help='Training json')
+ps.add_argument("tbbjson", type=str, help='Bounding boxes training json')
+ps.add_argument("vjson", type=str, help='Validation json')
+ps.add_argument("vbbjson", type=str, help='Validation bounding boxes json')
+ps.add_argument("mjson", type=str, help='Root json')
+
+args=ps.parse_args()
+
 sys.path.append('/usr/xtmp/wjs/BirdTrain/models/research/')
 sys.path.append('/usr/xtmp/wjs/BirdTrain/models/research/object_detection/')
 sys.path.append('/usr/xtmp/wjs/BirdTrain/models/research/slim/')
+
 from utils import dataset_util
 from dataset_tools import tf_record_creation_util
 
@@ -16,7 +28,7 @@ import os
 import re
 from PIL import Image
 
-BASE_DIR = '/usr/xtmp/wjs/BirdTrain/'
+BASE_DIR = args.opath
 
 def combine_dicts(images, boxes):
     entries = []
@@ -38,7 +50,6 @@ def combine_dicts(images, boxes):
     return entries
 
 def create_tf_example(entry):
-
     height = entry['height']  # Image height
     width = entry['width']  # Image width
     filename = entry['file_name'].encode()  # Filename of the image. Empty if image is not from file
@@ -84,7 +95,7 @@ def create_tf_record(output_filename, examples):
     print("Records written:", count)
 
 def gen_labels(entries):
-    bfile = open(BASE_DIR + 'data/birds.pbtxt', 'w', encoding='utf-8')
+    bfile = open(args.lpath, 'w', encoding='utf-8')
     categories = {i['category_id']: i['name'] for i in entries}
     for i in categories:
         class_entry = 'item {\n'
@@ -92,18 +103,18 @@ def gen_labels(entries):
         class_entry += '  name: "' + categories[i] + '"\n'
         class_entry += '}' + '\n'
         bfile.write(class_entry)
-    jfile = open(BASE_DIR + 'data/birds.json', 'w')
+    jfile = open(args.mjson, 'w')
     jfile.write(json.dumps(categories, default=str, indent=2))
 
-#
-train_images = json.loads(open(BASE_DIR + 'data/train2017.json', 'r').read())
-train_bb = json.loads(open(BASE_DIR + 'data/train_2017_bboxes.json', 'r').read())
+
+train_images = json.loads(open(args.tjson, 'r').read())
+train_bb = json.loads(open(args.tbbjson, 'r').read())
 all_train_entries = combine_dicts(train_images, train_bb)
 gen_labels(all_train_entries)
 
-eval_images = json.loads(open(BASE_DIR + 'data/val2017.json', 'r').read())
-eval_bb = json.loads(open(BASE_DIR + 'data/val_2017_bboxes.json', 'r').read())
+eval_images = json.loads(open(vjson, 'r').read())
+eval_bb = json.loads(open(vbbjson, 'r').read())
 all_eval_entries = combine_dicts(eval_images, eval_bb)
-#
-create_tf_record('/usr/xtmp/wjs/BirdTrain/data/birds_inat_tfrecords_train.record', all_train_entries)
-create_tf_record('/usr/xtmp/wjs/BirdTrain/data/birds_inat_tfrecords_eval.record', all_eval_entries)
+
+create_tf_record(args.opath+'/birds_inat_tfrecords_train.record', all_train_entries)
+create_tf_record(args.opath+'/birds_inat_tfrecords_eval.record', all_eval_entries)
