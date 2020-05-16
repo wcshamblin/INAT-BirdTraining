@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import argparse
 
-ps = argparse.ArgumentParser(description='')
+ps = argparse.ArgumentParser(description='Automatically changes pipeline config variables for mass pipeline modification')
 ps.add_argument("pipeline", type=str, help='Path to pipeline pipeline.config')
 ps.add_argument("-o", "--outfile", type=str, help="Path to write new pipeline.config. If not defined, overwrite infile.")
 
