@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import argparse
-import yaml
 
 ps = argparse.ArgumentParser(description='')
 ps.add_argument("pipeline", type=str, help='Path to pipeline pipeline.config')
